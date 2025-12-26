@@ -12,7 +12,7 @@ import (
 // Config содержит все конфигурационные параметры сервиса.
 type Config struct {
 	Env  string `yaml:"env" env-default:"local"`
-	Port string `yaml:"port"`
+	Port int    `yaml:"port"`
 	Host string `yaml:"host"`
 	DB   DBConfig
 }
@@ -31,7 +31,7 @@ type DBConfig struct {
 // Функция ищет путь к конфигурационному файлу через флаги командной строки
 // или переменные окружения. Если путь не указан - вызывает панику.
 func MustLoad() *Config {
-	if err := godotenv.Load(); err != nil {
+	if err := godotenv.Load("../../.env"); err != nil {
 		log.Fatal("Env file does not exist: ", err.Error())
 	}
 
