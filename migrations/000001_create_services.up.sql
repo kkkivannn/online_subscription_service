@@ -8,5 +8,7 @@ create table services
     price      integer      not null,                             -- стоимость месячной подписки в рублях
     user_id    uuid         not null,                             -- ID пользователя (UUID)
     start_date timestamp    not null                              -- дата начала подписки (месяц и год)
-        check (start_date = date_trunc('month', start_date)) -- всегда первый день месяца
+        check (start_date = date_trunc('month', start_date)),     -- всегда первый день месяца
+    end_date   timestamp    null                                  -- дата конца подписки (месяц и год)
+        check (start_date = date_trunc('month', end_date))
 );
