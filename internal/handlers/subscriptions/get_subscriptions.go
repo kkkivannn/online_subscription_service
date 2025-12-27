@@ -6,6 +6,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// getSubscriptions — HTTP-обработчик для получения всех подписок.
+// - Вызывает сервисный слой для получения списка всех подписок.
+// - Возвращает JSON с массивом подписок или ошибку.
 func (h *Handlers) getSubscriptions(c echo.Context) error {
 	ctx := c.Request().Context()
 

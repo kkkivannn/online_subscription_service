@@ -2,9 +2,9 @@ package subscriptions
 
 import (
 	"context"
-	"net/http"
 	"online_subscription_service/internal/domain/models"
 	"online_subscription_service/internal/services"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -18,7 +18,7 @@ type Service interface {
 	GetSubscription(ctx context.Context, uuid uuid.UUID) (models.Subs, error)
 	EditSubscription(ctx context.Context, uuid uuid.UUID, sub models.SubsUpdateDTO) error
 	GetAllSubscriptions(ctx context.Context) ([]models.Subs, error)
-	GetPriceWithPeriod(ctx context.Context)
+	GetPriceWithPeriod(ctx context.Context, from, to time.Time, userID uuid.UUID, name string) (int, error)
 	RemoveSubscription(ctx context.Context, uuid uuid.UUID) error
 }
 
@@ -48,12 +48,5 @@ func (h *Handlers) Setup() {
 	h.e.PATCH("/:id", h.editSubscription)
 	h.e.DELETE("/:id", h.removeSubscription)
 	h.e.GET("", h.getSubscriptions)
-	// TODO: создать HTTP-эндпоинт для получения цены с периодом
 	h.e.GET("/price", h.getPriceWithPeriod)
-}
-
-func (h *Handlers) getPriceWithPeriod(c echo.Context) error {
-	return c.JSON(http.StatusOK, map[string]any{
-		"code": http.StatusOK,
-	})
 }

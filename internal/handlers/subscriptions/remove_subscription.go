@@ -7,6 +7,11 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// removeSubscription — HTTP-обработчик для удаления подписки по ID.
+// - Получает ID подписки из URL-параметра.
+// - Валидирует и парсит UUID.
+// - Вызывает сервисный слой для удаления подписки.
+// - Возвращает статус 200 при успешном удалении или соответствующую ошибку.
 func (h *Handlers) removeSubscription(c echo.Context) error {
 	param := c.Param("id")
 

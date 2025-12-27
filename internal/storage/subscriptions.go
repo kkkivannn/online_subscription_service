@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"online_subscription_service/internal/domain/models"
 	"online_subscription_service/internal/lib/storage"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -45,6 +46,8 @@ func (s *SubsStorage) CreateSubscription(ctx context.Context, sub models.SubsDTO
 	return ID, nil
 }
 
+// ReadSubscription — читает подписку по UUID из базы данных.
+// Возвращает DTO подписки или ошибку, если запись не найдена или произошла ошибка при запросе.
 func (s *SubsStorage) ReadSubscription(ctx context.Context, uuid uuid.UUID) (models.SubsDTO, error) {
 	var sub models.SubsDTO
 
@@ -57,6 +60,9 @@ func (s *SubsStorage) ReadSubscription(ctx context.Context, uuid uuid.UUID) (mod
 	return sub, nil
 }
 
+// UpdateSubscription — обновляет существующую подписку по UUID.
+// Использует BuildUpdateQuery для генерации SQL-запроса и аргументов.
+// Возвращает ошибку, если не удалось обновить запись или аргументы пусты.
 func (s *SubsStorage) UpdateSubscription(ctx context.Context, uuid uuid.UUID, sub models.SubsUpdateDTO) error {
 	query, args := storage.BuildUpdateQuery(uuid, sub)
 	if args == nil {
@@ -75,6 +81,8 @@ func (s *SubsStorage) UpdateSubscription(ctx context.Context, uuid uuid.UUID, su
 	return nil
 }
 
+// ReadAllSubscriptions — возвращает все подписки из базы данных.
+// Конвертирует каждую запись в DTO и возвращает срез подписок.
 func (s *SubsStorage) ReadAllSubscriptions(ctx context.Context) ([]models.SubsDTO, error) {
 	var subs []models.SubsDTO
 
@@ -98,10 +106,22 @@ func (s *SubsStorage) ReadAllSubscriptions(ctx context.Context) ([]models.SubsDT
 	return subs, nil
 }
 
-func (s *SubsStorage) ReadPriceWithPeriod(ctx context.Context) {
+// ReadPriceWithPeriod — вычисляет суммарную стоимость подписки за указанный период для конкретного пользователя и услуги.
+// Возвращает 0, если подписок в периоде нет.
+func (s *SubsStorage) ReadPriceWithPeriod(ctx context.Context, from, to time.Time, userID uuid.UUID, name string) (int, error) {
+	var price int
+	query := "select coalesce(sum(price),0) from services where user_id = $1 and name=$2 and start_date < $3 ::date + interval '1 day'  and (end_date is null or end_date >= $4)"
 
+	err := s.db.QueryRow(ctx, query, userID, name, to, from).Scan(&price)
+	if err != nil {
+		return 0, fmt.Errorf("failed to read price: %w", err)
+	}
+
+	return price, nil
 }
 
+// DeleteSubscriptions — удаляет подписку по UUID из базы данных.
+// Возвращает ошибку, если запись не найдена или произошла ошибка при удалении.
 func (s *SubsStorage) DeleteSubscriptions(ctx context.Context, uuid uuid.UUID) error {
 	query := "delete from services where id=$1"
 

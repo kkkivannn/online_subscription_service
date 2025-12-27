@@ -7,6 +7,11 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// getSubscription — HTTP-обработчик для получения информации о конкретной подписке.
+// - Получает ID подписки из URL-параметра.
+// - Валидирует и парсит UUID.
+// - Вызывает сервисный слой для получения данных подписки.
+// - Возвращает JSON с информацией о подписке или ошибку.
 func (h *Handlers) getSubscription(c echo.Context) error {
 	param := c.Param("id")
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"online_subscription_service/internal/domain/models"
 	"online_subscription_service/internal/storage"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -18,7 +19,7 @@ type subsProvider interface {
 	ReadSubscription(ctx context.Context, uuid uuid.UUID) (models.SubsDTO, error)
 	UpdateSubscription(ctx context.Context, uuid uuid.UUID, sub models.SubsUpdateDTO) error
 	ReadAllSubscriptions(ctx context.Context) ([]models.SubsDTO, error)
-	ReadPriceWithPeriod(ctx context.Context)
+	ReadPriceWithPeriod(ctx context.Context, from, to time.Time, userID uuid.UUID, name string) (int, error)
 }
 
 // subsRemover — отвечает за удаление подписок.
@@ -51,6 +52,8 @@ func (s *SubsService) AddSubscription(ctx context.Context, sub models.SubsDTO) (
 	return s.subsSaver.CreateSubscription(ctx, sub)
 }
 
+// GetSubscription — возвращает информацию о конкретной подписке по UUID.
+// Вызывает метод subsProvider.ReadSubscription и конвертирует результат в модель Subs.
 func (s *SubsService) GetSubscription(ctx context.Context, uuid uuid.UUID) (models.Subs, error) {
 	sub, err := s.subsProvider.ReadSubscription(ctx, uuid)
 	if err != nil {
@@ -60,10 +63,14 @@ func (s *SubsService) GetSubscription(ctx context.Context, uuid uuid.UUID) (mode
 	return sub.ToSubs(), nil
 }
 
+// EditSubscription — обновляет данные существующей подписки.
+// Вызывает метод subsProvider.UpdateSubscription с переданным UUID и DTO обновления.
 func (s *SubsService) EditSubscription(ctx context.Context, uuid uuid.UUID, sub models.SubsUpdateDTO) error {
 	return s.subsProvider.UpdateSubscription(ctx, uuid, sub)
 }
 
+// GetAllSubscriptions — возвращает список всех подписок.
+// Читает данные через subsProvider.ReadAllSubscriptions и конвертирует каждую запись в модель Subs.
 func (s *SubsService) GetAllSubscriptions(ctx context.Context) ([]models.Subs, error) {
 	var subs []models.Subs
 
@@ -77,13 +84,17 @@ func (s *SubsService) GetAllSubscriptions(ctx context.Context) ([]models.Subs, e
 	}
 
 	return subs, nil
-
 }
 
-func (s *SubsService) GetPriceWithPeriod(ctx context.Context) {
-
+// GetPriceWithPeriod — возвращает стоимость подписки за указанный период для конкретного пользователя и услуги.
+// Параметры: начало и конец периода, UUID пользователя, название услуги.
+// Вызывает subsProvider.ReadPriceWithPeriod для вычисления цены.
+func (s *SubsService) GetPriceWithPeriod(ctx context.Context, from, to time.Time, userID uuid.UUID, name string) (int, error) {
+	return s.subsProvider.ReadPriceWithPeriod(ctx, from, to, userID, name)
 }
 
+// RemoveSubscription — удаляет подписку по UUID.
+// Вызывает метод subsRemover.DeleteSubscriptions для удаления записи.
 func (s *SubsService) RemoveSubscription(ctx context.Context, uuid uuid.UUID) error {
 	return s.subsRemover.DeleteSubscriptions(ctx, uuid)
 }

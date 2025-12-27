@@ -9,6 +9,11 @@ import (
 	"github.com/google/uuid"
 )
 
+// BuildUpdateQuery — строит SQL-запрос для обновления подписки.
+// - serviceID: UUID подписки для WHERE условия.
+// - sub: DTO с полями, которые нужно обновить.
+// Возвращает строку SQL-запроса и срез аргументов для Exec.
+// Игнорирует поля с nil значением, если все поля nil — возвращает пустую строку и nil args.
 func BuildUpdateQuery(serviceID uuid.UUID, sub models.SubsUpdateDTO) (string, []any) {
 	fields := map[string]any{
 		"name":       sub.Name,
