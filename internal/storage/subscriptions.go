@@ -2,8 +2,10 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"online_subscription_service/internal/domain/models"
+	"online_subscription_service/internal/lib/storage"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -43,22 +45,74 @@ func (s *SubsStorage) CreateSubscription(ctx context.Context, sub models.SubsDTO
 	return ID, nil
 }
 
-func (s *SubsStorage) ReadSubscription(ctx context.Context) {
+func (s *SubsStorage) ReadSubscription(ctx context.Context, uuid uuid.UUID) (models.SubsDTO, error) {
+	var sub models.SubsDTO
 
+	query := "select id, name, price, user_id, start_date, end_date from services where id=$1"
+
+	err := s.db.QueryRow(ctx, query, uuid).Scan(&sub.ID, &sub.Name, &sub.Price, &sub.UserID, &sub.StartDate, &sub.EndDate)
+	if err != nil {
+		return sub, fmt.Errorf("failed to select sub: %w", err)
+	}
+	return sub, nil
 }
 
-func (s *SubsStorage) UpdateSubscription(ctx context.Context) {
+func (s *SubsStorage) UpdateSubscription(ctx context.Context, uuid uuid.UUID, sub models.SubsUpdateDTO) error {
+	query, args := storage.BuildUpdateQuery(uuid, sub)
+	if args == nil {
+		return errors.New("empty args for update")
+	}
 
+	data, err := s.db.Exec(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("failed to update service: %w", err)
+	}
+
+	if data.RowsAffected() == 0 {
+		return fmt.Errorf("failed to update service, 0 rows affected")
+	}
+
+	return nil
 }
 
-func (s *SubsStorage) ReadAllSubscriptions(ctx context.Context) {
+func (s *SubsStorage) ReadAllSubscriptions(ctx context.Context) ([]models.SubsDTO, error) {
+	var subs []models.SubsDTO
 
+	query := "select * from services"
+
+	rows, err := s.db.Query(ctx, query)
+	if err != nil {
+		return subs, fmt.Errorf("failed to select subs: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var sub models.SubsDTO
+		err := rows.Scan(&sub.ID, &sub.Name, &sub.Price, &sub.UserID, &sub.StartDate, &sub.EndDate)
+		if err != nil {
+			return subs, fmt.Errorf("failed to scan sub: %w", err)
+		}
+		subs = append(subs, sub)
+	}
+
+	return subs, nil
 }
 
 func (s *SubsStorage) ReadPriceWithPeriod(ctx context.Context) {
 
 }
 
-func (s *SubsStorage) DeleteSubscriptions(ctx context.Context) {
+func (s *SubsStorage) DeleteSubscriptions(ctx context.Context, uuid uuid.UUID) error {
+	query := "delete from services where id=$1"
 
+	data, err := s.db.Exec(ctx, query, uuid)
+	if err != nil {
+		return fmt.Errorf("failed to delete service: %w", err)
+	}
+
+	if data.RowsAffected() == 0 {
+		return fmt.Errorf("failed to delete service, 0 rows affected")
+	}
+
+	return nil
 }

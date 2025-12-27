@@ -9,7 +9,7 @@ import (
 // Subs — модель подписки для хранения в базе данных.
 // Содержит ID, название услуги, цену, ID пользователя, дату начала и необязательную дату окончания.
 type Subs struct {
-	ID        int        `json:"id"`
+	ID        uuid.UUID  `json:"id"`
 	Name      string     `json:"service_name"`
 	Price     int        `json:"price"`
 	UserID    uuid.UUID  `json:"user_id"`
@@ -17,12 +17,30 @@ type Subs struct {
 	EndDate   *time.Time `json:"end_date"`
 }
 
-// SubRequest — структура запроса на создание подписки через HTTP.
+// AddSubRequest — структура запроса на создание подписки через HTTP.
 // Содержит минимальные данные: название услуги, цену и ID пользователя.
-type SubRequest struct {
+type AddSubRequest struct {
 	Name   string    `json:"service_name"`
 	Price  int       `json:"price"`
 	UserID uuid.UUID `json:"user_id"`
+}
+
+type EditSubRequest struct {
+	Name      *string    `json:"service_name"`
+	Price     *int       `json:"price"`
+	UserID    *uuid.UUID `json:"user_id"`
+	StartDate *time.Time `json:"start_date"`
+	EndDate   *time.Time `json:"end_date"`
+}
+
+func (s *EditSubRequest) ToSubsUpdateDTO() *SubsUpdateDTO {
+	return &SubsUpdateDTO{
+		Name:      s.Name,
+		Price:     s.Price,
+		UserID:    s.UserID,
+		StartDate: s.StartDate,
+		EndDate:   s.EndDate,
+	}
 }
 
 // monthStart — возвращает начало месяца для указанного времени.
@@ -39,7 +57,7 @@ func monthStart(t time.Time) time.Time {
 
 // ToSubsDTO — конвертирует SubRequest в DTO для хранения в сервисном слое.
 // Устанавливает дату начала подписки на первый день текущего месяца.
-func (s *SubRequest) ToSubsDTO() *SubsDTO {
+func (s *AddSubRequest) ToSubsDTO() *SubsDTO {
 	return &SubsDTO{
 		Name:      s.Name,
 		Price:     s.Price,
@@ -52,7 +70,7 @@ func (s *SubRequest) ToSubsDTO() *SubsDTO {
 // SubsDTO — Data Transfer Object для подписки.
 // Используется для передачи данных между слоями приложения.
 type SubsDTO struct {
-	ID        int        `json:"id"`
+	ID        uuid.UUID  `json:"id"`
 	Name      string     `json:"service_name"`
 	Price     int        `json:"price"`
 	UserID    uuid.UUID  `json:"user_id"`
@@ -61,8 +79,8 @@ type SubsDTO struct {
 }
 
 // ToSubs — конвертирует DTO обратно в модель для работы с базой данных.
-func (s *SubsDTO) ToSubs() *Subs {
-	return &Subs{
+func (s *SubsDTO) ToSubs() Subs {
+	return Subs{
 		ID:        s.ID,
 		Name:      s.Name,
 		Price:     s.Price,
@@ -70,4 +88,12 @@ func (s *SubsDTO) ToSubs() *Subs {
 		StartDate: s.StartDate,
 		EndDate:   s.EndDate,
 	}
+}
+
+type SubsUpdateDTO struct {
+	Name      *string    `json:"service_name"`
+	Price     *int       `json:"price"`
+	UserID    *uuid.UUID `json:"user_id"`
+	StartDate *time.Time `json:"start_date"`
+	EndDate   *time.Time `json:"end_date"`
 }
