@@ -6,6 +6,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	echoSwagger "github.com/swaggo/echo-swagger"
 )
 
 // Handlers — основной контейнер для HTTP-обработчиков приложения.
@@ -27,6 +28,9 @@ func (h *Handlers) SetUpHandlers(subscriptionsService *services.SubsService) {
 
 	// Включает логгирование всех HTTP-запросов
 	h.e.Use(middleware.RequestLogger())
+
+	// Swagger (обычно без versioning)
+	h.e.GET("/swagger/*", echoSwagger.WrapHandler)
 
 	// Группа всех API-эндпоинтов с префиксом /api/v1
 	api := h.e.Group("/api/v1")

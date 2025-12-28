@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log/slog"
+	_ "online_subscription_service/docs"
 	"online_subscription_service/internal/app"
 	"online_subscription_service/internal/config"
 	"os"
@@ -11,11 +12,25 @@ import (
 	"time"
 )
 
+/*
+ * - Добавить нормальную обработку ошибок
+ * - Добавить Swagger
+ * - Добавить тесты ?
+ * - Добавить Dockerfile
+ */
+
 // main является точкой входа в приложение.
 //  1. Загружает конфигурацию.
 //  2. Инициализирует и запускает приложение.
 //  3. Ожидает сигнала завершения (SIGINT или SIGTERM).
 //  4. Корректно завершает работу приложения с таймаутом в 10 секунд.
+//
+
+// @title           Online Subscriptions Swagger Api
+// @version         1.0
+// @description     API documentation example
+// @host            localhost:8080
+// @BasePath /api/v1
 func main() {
 	cfg := config.MustLoad()
 
