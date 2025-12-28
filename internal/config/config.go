@@ -31,7 +31,7 @@ type DBConfig struct {
 // Функция ищет путь к конфигурационному файлу через флаги командной строки
 // или переменные окружения. Если путь не указан - вызывает панику.
 func MustLoad() *Config {
-	if err := godotenv.Load("../../.env"); err != nil {
+	if err := godotenv.Load(); err != nil {
 		log.Fatal("Env file does not exist: ", err.Error())
 	}
 
